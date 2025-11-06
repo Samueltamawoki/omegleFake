@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <title>Omegle - Bate-papo</title>
+
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <body>
+    <header>
+      <h1 class="omegle-title">
+        <span>Ome</span><span>gle</span>
+      </h1>
+      <div class="title-line"></div>
+    </header>
+    <ul id="mensagens"></ul>
+    <form>
+      <input id="nome" placeholder="Seu nome de usuário" autocomplete="off" /><br>
+      <input id="mensagem" placeholder="Sua mensagem" autocomplete="off" /><button>Enviar</button>
+    </form>
+    <!-- Importa o script do Socket.IO -->
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+      // Cria uma instância do Socket.IO
+      const socket = io();
+      // Seleciona o input do nome do usuário
+      const nomeInput = document.getElementById('nome');
+      // Seleciona o input da mensagem
+      const mensagemInput = document.getElementById('mensagem');
+      // Seleciona a lista de mensagens
+      const mensagens = document.getElementById('mensagens');
+
+      // Adiciona um evento de escuta para o envio do formulário
+      document.querySelector('form').addEventListener('submit', event => {
+        // Previne o envio padrão do formulário
+        event.preventDefault();
+        // Obtém o valor do input do nome do usuário
+        const nome = nomeInput.value;
+        // Obtém o valor do input da mensagem
+        const mensagem = mensagemInput.value;
+        // Verifica se ambos os campos foram preenchidos antes de enviar a mensagem
+        // Verifica se os valores são válidos (não estão em branco)
+        //trim() é um método da linguagem JavaScript que remove os espaços em branco do início e do final de uma string.
+        // emit envia um evento chamado "chat message" com um objeto contendo os valores de nome e mensagem para o servidor.
+        nome.trim() && mensagem.trim() && socket.emit('chat message', { nome, mensagem });
+        // Limpa o input da mensagem
+        mensagemInput.value = '';
+        // Desabilita o input do nome do usuário após a primeira mensagem
+        nomeInput.disabled = true; 
+      });
+
+      // Adiciona um evento de escuta para o evento de mensagem recebido do servidor
+      socket.on('chat message', dados => {
+        // Cria um elemento de lista para exibir a mensagem
+        const lista = document.createElement('li');
+        // Define o texto da mensagem
+        lista.textContent = `${dados.nome}: ${dados.mensagem}`;
+        // Adiciona o elemento de lista à lista de mensagens
+        mensagens.appendChild(lista);
+      });
+
+      
+    </script>
+
+    <style>
+
+      .omegle-title {
+        font-family: "Segoe UI", Arial, sans-serif;
+        font-size: 48px;
+        font-weight: bold;
+        letter-spacing: 1px;
+      }
+
+      .omegle-title span:nth-child(1) {
+        color: #1E90FF; /* azul */
+      }
+
+      .omegle-title span:nth-child(2) {
+        color: #FF6600; /* laranja */
+      }
+
+      /* Linha decorativa abaixo do título */
+      .title-line {
+        width: 120px;
+        height: 4px;
+        background: linear-gradient(90deg, #1E90FF, #FF6600);
+        border-radius: 2px;
+        margin: 8px auto 0;
+      }
+      /* RESET BÁSICO */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+  font-family: "Segoe UI", Arial, sans-serif;
+  background: #ffffff;        /* fundo branco como o Omegle clássico */
+  color: #000000;             /* texto preto padrão */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* --- CONTAINER DE CHAT --- */
+ul#mensagens {
+  list-style: none;
+  width: 90%;
+  max-width: 1200px;         /* largura bem maior para desktop */
+  height: 70vh;
+  overflow-y: auto;
+  background: #f7f7f7;        /* leve cinza claro para contraste */
+  border: 1px solid #cccccc;
+  border-radius: 8px;
+  padding: 20px 24px 100px;   /* deixa espaço para o formulário abaixo */
+  margin-bottom: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* --- MENSAGENS --- */
+#mensagens li {
+  max-width: 70%;
+  padding: 12px 16px;
+  line-height: 1.5;
+  border-radius: 8px;
+  word-wrap: break-word;
+  animation: fadeIn 0.25s ease;
+  background: #ffffff;       /* bolha branca para “outro usuário” */
+  color: #e2dcdc;
+  align-self: flex-start;
+  border: 1px solid #dddddd;
+}
+
+/* Mensagens do próprio usuário */
+#mensagens li.me {
+  align-self: flex-end;
+  background: #dfefff;       /* tom azul-claro para “você” */
+  color: #000000;
+  border: 1px solid #bbd4ff;
+}
+
+/* Animação suave */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* --- FORMULÁRIO --- */
+form {
+  width: 90%;
+  max-width: 1200px;
+  display: flex;
+  gap: 10px;
+  background: #ffffff;
+  border: 1px solid #cccccc;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.05);
+  position: relative;
+  bottom: 0;
+}
+
+/* Inputs */
+form input {
+  height: 42px;
+  border: 1px solid #cccccc;
+  border-radius: 6px;
+  background: #fefefe;
+  color: #eee4e4;
+  padding: 0 14px;
+  font-size: 15px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+form input:focus {
+  border-color: #4a90e2;    /* azul para foco semelhante ao Omegle */
+}
+
+/* Botão */
+form button {
+  height: 42px;
+  padding: 0 18px;
+  border: none;
+  border-radius: 6px;
+  background-color: #4a90e2;  /* azul “Omegle” */
+  color: #ffffff;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+}
+
+form button:hover {
+  background-color: #357ab8;
+}
+
+form button:active {
+  transform: scale(0.97);
+}
+
+/* --- SCROLLBAR PERSONALIZADA --- */
+ul#mensagens::-webkit-scrollbar {
+  width: 6px;
+}
+ul#mensagens::-webkit-scrollbar-thumb {
+  background: #b0b0b0;
+  border-radius: 3px;
+}
+ul#mensagens::-webkit-scrollbar-thumb:hover {
+  background: #909090;
+}
+
+/* --- RESPONSIVIDADE --- */
+@media (max-width: 900px) {
+  ul#mensagens {
+    width: 95%;
+    height: 60vh;
+    padding: 16px 12px 80px;
+  }
+  form {
+    width: 95%;
+    padding: 12px;
+  }
+}* {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      
+      html, body {
+        height: 100%;
+        font-family: "Segoe UI", "Arial", sans-serif;
+        background: linear-gradient(180deg, #1e1e1e 0%, #0d0d0d 100%);
+        color: #fff;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+      
+      /* --- CONTAINER DE CHAT --- */
+      ul#mensagens {
+        list-style: none;
+        width: 1000px;              /* Aumentado de 90% → 95% */
+        max-width: 1000px;        /* Aumentado de 600px → 850px */
+        height: 70vh;
+        overflow-y: auto;
+        background: #222;
+        border: 1px solid #333;
+        border-radius: 8px;
+        padding: 18px;
+        margin-bottom: 10px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        box-shadow: 0 0 25px rgba(0, 0, 0, 0.4);
+      }
+      
+      /* --- MENSAGENS --- */
+      #mensagens li {
+        max-width: 75%;
+        padding: 10px 14px;
+        line-height: 1.5;
+        border-radius: 8px;
+        word-wrap: break-word;
+        animation: fadeIn 0.25s ease;
+        background: #3a3a3a;
+        color: #f2f2f2;
+        align-self: flex-start;
+      }
+      
+      /* Mensagens do próprio usuário */
+      #mensagens li.me {
+        align-self: flex-end;
+        background: #007bff;
+        color: #fff;
+      }
+      
+      /* Animação suave */
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(5px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      
+      /* --- FORMULÁRIO --- */
+      form {
+        width: 95%;              /* Mesmo valor do chat */
+        max-width: 1000px;        /* Mesmo valor do chat */
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        background: #111;
+        border: 1px solid #333;
+        border-radius: 8px;
+        padding: 12px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+      }
+      
+      /* Inputs */
+      form input {
+        height: 40px;
+        border: 1px solid #333;
+        border-radius: 6px;
+        background: #222;
+        color: #fff;
+        padding: 0 12px;
+        font-size: 15px;
+        outline: none;
+        transition: border-color 0.2s;
+      }
+      
+      form input:focus {
+        border-color: #007bff;
+      }
+      
+      /* Botão */
+      form button {
+        height: 42px;
+        border: none;
+        border-radius: 6px;
+        background: #007bff;
+        color: #fff;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background 0.2s, transform 0.1s;
+      }
+      
+      form button:hover {
+        background: #0066d3;
+      }
+      
+      form button:active {
+        transform: scale(0.97);
+      }
+      
+      /* --- SCROLLBAR PERSONALIZADA --- */
+      #mensagens::-webkit-scrollbar {
+        width: 6px;
+      }
+      #mensagens::-webkit-scrollbar-thumb {
+        background: #555;
+        border-radius: 3px;
+      }
+      #mensagens::-webkit-scrollbar-thumb:hover {
+        background: #777;
+      }
+      
+      /* --- RESPONSIVIDADE --- */
+      @media (max-width: 600px) {
+        ul#mensagens {
+          width: 95%;
+          height: 65vh;
+        }
+        form {
+          width: 95%;
+        }
+      }
+      
+    </style>
+  </body>
+</html>
